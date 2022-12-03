@@ -1,7 +1,9 @@
 import { Box } from "./Box";
+import { useState } from "react";
 
 export function Board() {
-  const BLANK_BOARD = [
+  const [errors, changeErrors] = useState(0);
+  let BLANK_BOARD = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -13,18 +15,39 @@ export function Board() {
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
   ];
 
+  let NEW_BOARD = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  ];
+
+  let GAME_BOARD = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  ];
+
+  let DIFFICULTY = {
+    EASY: 5,
+    MEDIUM: 10,
+    HARD: 15,
+  };
+
   let counter: number = 0;
   let check: number[];
-  const numArray = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-
-  function shuffle(array: number[][]) {
-    let newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-    }
-    return newArray;
-  }
+  const numArray: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
   function rowSafe(
     puzzleArray: number[][],
@@ -56,8 +79,8 @@ export function Board() {
     const rowStart: number = emptyCell.rowIndex - (emptyCell.rowIndex % 3);
     const colStart: number = emptyCell.colIndex - (emptyCell.colIndex % 3);
 
-    for (let i = 0; i < 2; i++) {
-      for (let j = 0; j < 2; j++) {
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
         if (puzzleArray[rowStart + i][colStart + j] === num) {
           return false;
         }
@@ -89,50 +112,141 @@ export function Board() {
     rowIndex: number;
   } {
     let emptyCell = { rowIndex: -1, colIndex: -1 };
-    let test = puzzleArray.flat();
-    let firstZero = test.indexOf(0);
-    if (firstZero < 81) {
-      let row = firstZero % 9;
-      let col = firstZero;
-      emptyCell.rowIndex = row;
-      emptyCell.colIndex = col;
-      return emptyCell;
+    for (let i = 0; i < 9; i++) {
+      for (let j = 0; j < 9; j++) {
+        if (puzzleArray[i][j] === 0) {
+          return { rowIndex: i, colIndex: j };
+        }
+      }
     }
     return emptyCell;
   }
 
-  console.log(nextEmptyCell(BLANK_BOARD));
+  function shuffle(array: number[]): number[] {
+    // using Array sort and Math.random
 
-  // function fillPuzzle(puzzleArray: number[][]): number[][] {
-  //   if (nextEmptyCell(puzzleArray).colIndex === -1) return puzzleArray;
+    let shuffledArr = array.sort(() => 0.5 - Math.random());
+    return shuffledArr;
+  }
 
-  //   let emptyCell = nextEmptyCell(puzzleArray);
-  //   for (var num of numArray) {
-  //     if (safeToPlace(puzzleArray, emptyCell, num)) {
-  //       puzzleArray[emptyCell.rowIndex][emptyCell.colIndex] = num;
-  //       return fillPuzzle(puzzleArray);
-  //     }
-  //   }
+  function fillBoard(puzzleArray: number[][]): boolean {
+    if (nextEmptyCell(puzzleArray).colIndex === -1) return true;
 
-  //   return BLANK_BOARD;
-  // }
+    let emptyCell = nextEmptyCell(puzzleArray);
 
-  // let test = fillPuzzle(BLANK_BOARD);
+    for (var num in shuffle(numArray)) {
+      if (safeToPlace(puzzleArray, emptyCell, numArray[num])) {
+        puzzleArray[emptyCell.rowIndex][emptyCell.colIndex] = numArray[num];
+        if (fillBoard(puzzleArray)) return true;
+      }
+    }
+
+    puzzleArray[emptyCell.rowIndex][emptyCell.colIndex] = 0;
+
+    return false;
+  }
+
+  fillBoard(NEW_BOARD);
+  GAME_BOARD = NEW_BOARD.map((row) => [...row]); // deep copy
+
+  function makeHoles(array: number[][], difficulty: String): void {
+    array.forEach((row, rowIndex) =>
+      row.forEach((col, colIndex) => {
+        for (let i = 0; i < getDifficulty(difficulty); i++) {
+          let random = Math.floor(Math.random() * 10);
+          if (array[rowIndex][colIndex] === random) {
+            array[rowIndex][colIndex] = 0;
+          }
+        }
+      })
+    );
+  }
+
+  function getDifficulty(difficulty: String): number {
+    switch (difficulty) {
+      case "EASY":
+        return 5;
+      case "MEDIUM":
+        return 10;
+      case "HARD":
+        return 15;
+      case "IMPOSSIBLE":
+        return 20;
+      default:
+        return 10;
+    }
+  }
+
+  makeHoles(GAME_BOARD, "EASY");
+  console.log(GAME_BOARD.flat());
+  console.log(NEW_BOARD.flat());
 
   return (
-    <div
-      style={{
-        height: "450px",
-        width: "450px",
-        display: "grid",
-        gap: "10px",
-        gridTemplateColumns: "repeat(9,50px)",
-        gridTemplateRows: "repeat(9,50px)",
-      }}
-    >
-      {BLANK_BOARD.flat().map((item) => (
-        <Box i={item} />
-      ))}
-    </div>
+    <>
+      <h1>{errors}</h1>
+      <div
+        style={{
+          height: "450px",
+          width: "450px",
+          display: "inline-grid",
+          gap: "10px",
+          gridTemplateColumns: "repeat(9,50px)",
+          gridTemplateRows: "repeat(9,50px)",
+          position: "absolute",
+          top: "200px",
+          left: "0px",
+          right: "0px",
+          marginLeft: "auto",
+          marginRight: "auto",
+        }}
+      >
+        {GAME_BOARD.flat().map((item, index) => (
+          <Box
+            i={item}
+            index={index}
+            GAME_BOARD={GAME_BOARD}
+            NEW_BOARD={NEW_BOARD}
+            changeErrors={changeErrors}
+            errors={errors}
+          />
+        ))}
+        <div
+          style={{
+            height: "3px",
+            backgroundColor: "black",
+            position: "absolute",
+            width: "530px",
+            top: "172px",
+          }}
+        ></div>
+        <div
+          style={{
+            height: "3px",
+            backgroundColor: "black",
+            position: "absolute",
+            width: "530px",
+            top: "352px",
+          }}
+        ></div>
+        <div
+          style={{
+            width: "3px",
+            backgroundColor: "black",
+            position: "absolute",
+            height: "530px",
+            left: "172px",
+          }}
+        ></div>
+        <div
+          style={{
+            width: "3px",
+            backgroundColor: "black",
+            position: "absolute",
+            height: "530px",
+            left: "352px",
+          }}
+        ></div>
+      </div>
+    </>
   );
 }

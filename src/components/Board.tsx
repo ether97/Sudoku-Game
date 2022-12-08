@@ -1,6 +1,5 @@
 import { Box } from "./Box";
 import { useSudokuContext } from "../context/SudokuContext";
-import { Button } from "react-bootstrap";
 
 export function Board() {
   const {
@@ -11,37 +10,47 @@ export function Board() {
     getNewBoard,
     makeHoles,
     fillBoard,
-    setDifficultyAndUpdate,
     getCheck,
     updateCheck,
   } = useSudokuContext();
 
   let NEW_BOARD = getNewBoard();
   let GAME_BOARD = getGameBoard();
+  let difficulty = "MEDIUM";
 
   while (!getCheck()) {
     fillBoard(NEW_BOARD);
+    console.log(NEW_BOARD);
     GAME_BOARD = NEW_BOARD.map((row) => [...row]); // deep copy
-    makeHoles(GAME_BOARD, "EASY");
+    makeHoles(GAME_BOARD, difficulty);
     updateCurrentBoard(GAME_BOARD);
     updateCheck();
   }
 
   return (
     <>
-      <h1>{getErrors()}</h1>
+      <h1
+        style={{
+          position: "absolute",
+          top: "100px",
+          textAlign: "center",
+          color: "white",
+        }}
+      >
+        {getErrors() < 4 ? `Errors: ${getErrors()}` : "Game Over"}
+      </h1>
       <div
         style={{
           height: "450px",
           width: "450px",
           display: "inline-grid",
-          gap: "10px",
+          gap: "20px",
           gridTemplateColumns: "repeat(9,50px)",
           gridTemplateRows: "repeat(9,50px)",
           position: "absolute",
           top: "200px",
-          left: "0px",
-          right: "0px",
+          left: "-150px",
+          right: "0",
           marginLeft: "auto",
           marginRight: "auto",
         }}
@@ -53,72 +62,40 @@ export function Board() {
           ))}
         <div
           style={{
-            height: "3px",
+            height: "5px",
             backgroundColor: "black",
             position: "absolute",
-            width: "530px",
-            top: "172px",
+            width: "610px",
+            top: "197px",
           }}
         ></div>
         <div
           style={{
-            height: "3px",
+            height: "5px",
             backgroundColor: "black",
             position: "absolute",
-            width: "530px",
-            top: "352px",
+            width: "610px",
+            top: "408px",
           }}
         ></div>
         <div
           style={{
-            width: "3px",
+            width: "5px",
             backgroundColor: "black",
             position: "absolute",
-            height: "530px",
-            left: "172px",
+            height: "610px",
+            left: "197px",
           }}
         ></div>
         <div
           style={{
-            width: "3px",
+            width: "5px",
             backgroundColor: "black",
             position: "absolute",
-            height: "530px",
-            left: "352px",
+            height: "610px",
+            left: "408px",
           }}
         ></div>
-        <div
-          style={{
-            width: "530px",
-            display: "flex",
-            justifyContent: "space-between",
-          }}
-        >
-          <Button
-            variant="success"
-            onClick={() => setDifficultyAndUpdate("EASY")}
-          >
-            EASY
-          </Button>
-          <Button
-            variant="info"
-            onClick={() => setDifficultyAndUpdate("MEDIUM")}
-          >
-            MEDIUM
-          </Button>
-          <Button
-            variant="warning"
-            onClick={() => setDifficultyAndUpdate("HARD")}
-          >
-            HARD
-          </Button>
-          <Button
-            variant="danger"
-            onClick={() => setDifficultyAndUpdate("IMPOSSIBLE")}
-          >
-            IMPOSSIBLE
-          </Button>
-        </div>
       </div>
     </>
   );

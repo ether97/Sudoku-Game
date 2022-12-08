@@ -14,6 +14,7 @@ function App() {
           boxSizing: "border-box",
           margin: "0px",
           padding: "0px",
+          backgroundImage: "linear-gradient(to right, #434343 0%, black 100%)",
         }}
       >
         <Board />

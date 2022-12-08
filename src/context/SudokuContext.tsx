@@ -28,6 +28,9 @@ type SudokuContext = {
   getNewBoard: () => number[][];
   getGameBoard: () => number[][];
   setDifficultyAndUpdate: (params: string) => void;
+  updateNewBoard: (params: number[][]) => void;
+  getOpacity: () => number;
+  updateOpacity: (params: number) => void;
 };
 
 const SudokuContext = createContext({} as SudokuContext);
@@ -38,6 +41,8 @@ export function useSudokuContext() {
 
 export function SudokuProvider({ children }: SudokuProviderProps) {
   const [errors, setErrors] = useState<number>(0);
+
+  const opacity = useRef(0);
   const check = useRef(false);
   const currentBoard = useRef([
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -63,7 +68,7 @@ export function SudokuProvider({ children }: SudokuProviderProps) {
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
   ];
 
-  let NEW_BOARD = [
+  const NEW_BOARD = useRef([
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -73,7 +78,7 @@ export function SudokuProvider({ children }: SudokuProviderProps) {
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  ];
+  ]);
 
   let GAME_BOARD = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -93,6 +98,14 @@ export function SudokuProvider({ children }: SudokuProviderProps) {
     return errors;
   }
 
+  function getOpacity() {
+    return opacity.current;
+  }
+
+  function updateOpacity(decimal: number) {
+    opacity.current += decimal;
+  }
+
   function getCheck() {
     return check.current;
   }
@@ -106,7 +119,7 @@ export function SudokuProvider({ children }: SudokuProviderProps) {
   }
 
   function getNewBoard() {
-    return NEW_BOARD;
+    return NEW_BOARD.current;
   }
 
   function getGameBoard() {
@@ -233,19 +246,22 @@ export function SudokuProvider({ children }: SudokuProviderProps) {
   }
 
   function setDifficultyAndUpdate(difficulty: string): void {
-    fillBoard(NEW_BOARD);
-    GAME_BOARD = NEW_BOARD.map((row) => [...row]); // deep copy
+    fillBoard(NEW_BOARD.current);
+    // GAME_BOARD = NEW_BOARD.map((row) => [...row]); // deep copy
     makeHoles(GAME_BOARD, difficulty);
     updateCurrentBoard(GAME_BOARD);
   }
 
   function updateCurrentBoard(newBoard: number[][]) {
-    console.log(newBoard);
     currentBoard.current = newBoard;
   }
 
   function getCurrentBoard(): number[][] {
     return currentBoard.current;
+  }
+
+  function updateNewBoard(board: number[][]): void {
+    NEW_BOARD.current = board;
   }
 
   return (
@@ -269,6 +285,9 @@ export function SudokuProvider({ children }: SudokuProviderProps) {
         getNewBoard,
         getGameBoard,
         setDifficultyAndUpdate,
+        updateNewBoard,
+        getOpacity,
+        updateOpacity,
       }}
     >
       {children}

@@ -17,6 +17,11 @@ export function Box({ i, index }: BoxProps) {
     getOpacity,
     updateOpacity,
     getErrors,
+    updateCorrectInputs,
+    returnCorrectInputs,
+    returnHoleCount,
+    updateShowState,
+    resetBoard,
   } = useSudokuContext();
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>): void {
@@ -28,6 +33,10 @@ export function Box({ i, index }: BoxProps) {
           updateErrors();
         } else {
           changeButtonValue(Number(e.key));
+          updateCorrectInputs();
+          if (returnCorrectInputs() === returnHoleCount()) {
+            updateShowState();
+          }
         }
       }
     }
@@ -35,9 +44,9 @@ export function Box({ i, index }: BoxProps) {
   return (
     <>
       <Button
-        variant={i === 0 ? "outline-light" : "dark"}
+        variant={i === 0 ? "outline-light" : "light"}
         style={{
-          backgroundImage: i !== 0 ? "black" : "",
+          backgroundImage: i !== 0 ? "black" : "white",
           height: "48px",
           width: "48px",
           borderRadius: "5px",
@@ -45,7 +54,9 @@ export function Box({ i, index }: BoxProps) {
           alignItems: "center",
           justifyContent: "center",
           fontSize: "2rem",
-          color: "white",
+          color: i === 0 ? "white" : "black",
+          // fontWeight: "bold",
+          fontFamily: "'Zen Dots', cursive",
         }}
         disabled={i === 0 ? false : true}
         onKeyDown={(e) => handleKeyDown(e)}

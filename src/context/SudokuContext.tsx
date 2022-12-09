@@ -31,6 +31,17 @@ type SudokuContext = {
   updateNewBoard: (params: number[][]) => void;
   getOpacity: () => number;
   updateOpacity: (params: number) => void;
+  updateCorrectInputs: () => void;
+  returnCorrectInputs: () => number;
+  updateHoleCount: () => void;
+  returnHoleCount: () => number;
+  handleShow: () => void;
+  handleClose: () => void;
+  getShowState: () => boolean;
+  updateShowState: () => void;
+  handleClick: () => void;
+  resetBoard: () => void;
+  newGame: () => void;
 };
 
 const SudokuContext = createContext({} as SudokuContext);
@@ -41,9 +52,12 @@ export function useSudokuContext() {
 
 export function SudokuProvider({ children }: SudokuProviderProps) {
   const [errors, setErrors] = useState<number>(0);
+  const correctInputs = useRef(0);
+  const holeCount = useRef(0);
+  const [show, setShow] = useState(false);
 
   const opacity = useRef(0);
-  const check = useRef(false);
+  const [check, setCheck] = useState(false);
   const currentBoard = useRef([
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -68,7 +82,7 @@ export function SudokuProvider({ children }: SudokuProviderProps) {
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
   ];
 
-  const NEW_BOARD = useRef([
+  let NEW_BOARD = useRef([
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -80,7 +94,7 @@ export function SudokuProvider({ children }: SudokuProviderProps) {
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
   ]);
 
-  let GAME_BOARD = [
+  let GAME_BOARD = useRef([
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -90,12 +104,43 @@ export function SudokuProvider({ children }: SudokuProviderProps) {
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  ];
+  ]);
 
   const numArray: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
+  function handleClick() {
+    window.location.reload();
+  }
+
+  function getShowState() {
+    return show;
+  }
+
+  function updateShowState() {
+    setShow(true);
+  }
+
   function getErrors() {
     return errors;
+  }
+
+  function updateCorrectInputs() {
+    correctInputs.current++;
+  }
+
+  function updateHoleCount() {
+    holeCount.current++;
+  }
+
+  function returnHoleCount() {
+    return holeCount.current;
+  }
+
+  function returnCorrectInputs() {
+    return correctInputs.current;
   }
 
   function getOpacity() {
@@ -107,15 +152,54 @@ export function SudokuProvider({ children }: SudokuProviderProps) {
   }
 
   function getCheck() {
-    return check.current;
+    return check;
   }
 
   function updateCheck() {
-    check.current = true;
+    setCheck(!check);
+  }
+
+  function resetBoard() {
+    NEW_BOARD.current = [
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ];
+
+    GAME_BOARD.current = [
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ];
   }
 
   function updateErrors() {
     setErrors((errors) => (errors += 1));
+  }
+
+  function newGame() {
+    fillBoard(NEW_BOARD.current);
+    console.log(NEW_BOARD);
+    GAME_BOARD.current = NEW_BOARD.current.map((row) => [...row]); // deep copy
+    makeHoles(GAME_BOARD.current, "MEDIUM");
+    GAME_BOARD.current.flat().map((item) => {
+      if (item === 0) {
+        updateHoleCount();
+      }
+    });
+    updateCurrentBoard(GAME_BOARD.current);
   }
 
   function getNewBoard() {
@@ -123,7 +207,7 @@ export function SudokuProvider({ children }: SudokuProviderProps) {
   }
 
   function getGameBoard() {
-    return GAME_BOARD;
+    return GAME_BOARD.current;
   }
 
   function rowSafe(
@@ -232,6 +316,8 @@ export function SudokuProvider({ children }: SudokuProviderProps) {
 
   function getDifficulty(difficulty: String): number {
     switch (difficulty) {
+      case "TEST":
+        return 2;
       case "EASY":
         return 5;
       case "MEDIUM":
@@ -248,8 +334,8 @@ export function SudokuProvider({ children }: SudokuProviderProps) {
   function setDifficultyAndUpdate(difficulty: string): void {
     fillBoard(NEW_BOARD.current);
     // GAME_BOARD = NEW_BOARD.map((row) => [...row]); // deep copy
-    makeHoles(GAME_BOARD, difficulty);
-    updateCurrentBoard(GAME_BOARD);
+    makeHoles(GAME_BOARD.current, difficulty);
+    updateCurrentBoard(GAME_BOARD.current);
   }
 
   function updateCurrentBoard(newBoard: number[][]) {
@@ -288,6 +374,17 @@ export function SudokuProvider({ children }: SudokuProviderProps) {
         updateNewBoard,
         getOpacity,
         updateOpacity,
+        updateCorrectInputs,
+        returnCorrectInputs,
+        updateHoleCount,
+        returnHoleCount,
+        handleShow,
+        handleClose,
+        getShowState,
+        updateShowState,
+        handleClick,
+        resetBoard,
+        newGame,
       }}
     >
       {children}

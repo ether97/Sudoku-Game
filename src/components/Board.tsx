@@ -1,5 +1,7 @@
 import { Box } from "./Box";
 import { useSudokuContext } from "../context/SudokuContext";
+import { SudokuModal } from "./SudokuModal";
+import { Button } from "react-bootstrap";
 
 export function Board() {
   const {
@@ -12,18 +14,16 @@ export function Board() {
     fillBoard,
     getCheck,
     updateCheck,
+    updateHoleCount,
+    returnCorrectInputs,
+    returnHoleCount,
+    getShowState,
+    newGame,
+    handleClick,
   } = useSudokuContext();
 
-  let NEW_BOARD = getNewBoard();
-  let GAME_BOARD = getGameBoard();
-  let difficulty = "MEDIUM";
-
-  while (!getCheck()) {
-    fillBoard(NEW_BOARD);
-    console.log(NEW_BOARD);
-    GAME_BOARD = NEW_BOARD.map((row) => [...row]); // deep copy
-    makeHoles(GAME_BOARD, difficulty);
-    updateCurrentBoard(GAME_BOARD);
+  if (!getCheck()) {
+    newGame();
     updateCheck();
   }
 
@@ -32,13 +32,26 @@ export function Board() {
       <h1
         style={{
           position: "absolute",
-          top: "100px",
+          top: "70px",
           textAlign: "center",
           color: "white",
+          fontFamily: "'Zen Dots', cursive",
         }}
       >
         {getErrors() < 4 ? `Errors: ${getErrors()}` : "Game Over"}
       </h1>
+      <Button
+        variant="light"
+        style={{
+          position: "absolute",
+          top: "130px",
+          fontFamily: "'Zen Dots', cursive",
+          color: "black",
+        }}
+        onClick={handleClick}
+      >
+        NEW GAME
+      </Button>
       <div
         style={{
           height: "450px",
@@ -97,6 +110,7 @@ export function Board() {
           }}
         ></div>
       </div>
+      {getShowState() && <SudokuModal />}
     </>
   );
 }
